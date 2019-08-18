@@ -1,18 +1,31 @@
 package sales;
 
+import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
-//@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class SalesAppTest {
 
-//    @InjectMocks
-//    private SalesApp salesApp;
-//    @Mock
-//    private SalesDao salesDao;
+    @InjectMocks
+    private SalesApp salesApp;
+    @Mock
+    private SalesDao salesDao;
+    @Mock
+    SalesReportDao salesReportDao;
+    @Mock
+    EcmService ecmService;
 
     @Test
     public void testGenerateReport() {
@@ -27,4 +40,46 @@ public class SalesAppTest {
 
         verify(salesApp, times(1)).generateReport(any(), any());
     }
+
+    @Test
+    public void should_return_false_when_validateDate_given_error_date() {
+        SalesApp salesApp = spy(SalesApp.class);
+        Sales sales = mock(Sales.class);
+        when(sales.getEffectiveTo()).thenReturn(new Date(System.currentTimeMillis() + 60 * 60 * 1000));
+        when(sales.getEffectiveFrom()).thenReturn(new Date(System.currentTimeMillis() - 60 * 60 * 1000));
+
+        boolean isValidDate = salesApp.validateDate(sales);
+
+        assertTrue(isValidDate);
+    }
+
+    @Test
+    public void should_return_list_when_filter_given_ReportDataAndIsSupervisor() {
+        Sales sales = new Sales();
+        SalesReportData salesReportData = mock(SalesReportData.class);
+        when(salesReportData.getType()).thenReturn("SalesActivity");
+        List<SalesReportData> reportDataList = Arrays.asList(new SalesReportData(), salesReportData);
+        when(salesReportDao.getReportData(sales)).thenReturn(reportDataList);
+
+        List<SalesReportData> filteredReportDataList = salesApp.filteredReportDataList(reportDataList, true);
+
+        Assert.assertEquals(1, filteredReportDataList.size());
+        Assert.assertEquals("SalesActivity", filteredReportDataList.get(0).getType());
+    }
+
+    @Test
+    public void should_return_nothing_when_filter_givenReportDataAndIsNotSupervisor() {
+        Sales sales = new Sales();
+        SalesReportData salesReportData = mock(SalesReportData.class);
+        when(salesReportData.getType()).thenReturn("SalesActivity");
+        when(salesReportData.isConfidential()).thenReturn(true);
+        List<SalesReportData> reportDataList = Arrays.asList(new SalesReportData(), salesReportData);
+        when(salesReportDao.getReportData(sales)).thenReturn(reportDataList);
+
+        List<SalesReportData> filteredReportDataList = salesApp.filteredReportDataList(reportDataList, false);
+
+        Assert.assertEquals(0, filteredReportDataList.size());
+    }
+
+
 }

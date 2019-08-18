@@ -7,11 +7,11 @@ import java.util.List;
 
 public class SalesApp {
 
-    public void generateSalesActivityReport(String salesId, int maxRow, boolean isNatTrade, boolean isSupervisor) {
+    SalesDao salesDao = new SalesDao();
+    SalesReportDao salesReportDao = new SalesReportDao();
+    EcmService ecmService = new EcmService();
 
-        SalesDao salesDao = new SalesDao();
-        SalesReportDao salesReportDao = new SalesReportDao();
-        List<String> headers = null;
+    public void generateSalesActivityReport(String salesId, int maxRow, boolean isNatTrade, boolean isSupervisor) {
 
         if (salesId == null) {
             return;
@@ -29,17 +29,26 @@ public class SalesApp {
 
         filteredReportDataList = generateTempList(reportDataList, maxRow);
 
+        List<String> headers = createHeader(isNatTrade);
+
+        SalesActivityReport report = this.generateReport(headers, reportDataList);
+
+        upload(report);
+
+    }
+
+    private void upload(SalesActivityReport report) {
+        ecmService.uploadDocument(report.toXml());
+    }
+
+    protected List<String> createHeader(boolean isNatTrade) {
+        List<String> headers = new ArrayList<>();
         if (isNatTrade) {
             headers = Arrays.asList("Sales ID", "Sales Name", "Activity", "Time");
         } else {
             headers = Arrays.asList("Sales ID", "Sales Name", "Activity", "Local Time");
         }
-
-        SalesActivityReport report = this.generateReport(headers, reportDataList);
-
-        EcmService ecmService = new EcmService();
-        ecmService.uploadDocument(report.toXml());
-
+        return headers;
     }
 
     protected SalesActivityReport generateReport(List<String> headers, List<SalesReportData> reportDataList) {
