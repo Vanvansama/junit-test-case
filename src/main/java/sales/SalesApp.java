@@ -13,39 +13,21 @@ public class SalesApp {
         SalesReportDao salesReportDao = new SalesReportDao();
         List<String> headers = null;
 
-        List<SalesReportData> filteredReportDataList = new ArrayList<SalesReportData>();
-
         if (salesId == null) {
             return;
         }
 
         Sales sales = salesDao.getSalesBySalesId(salesId);
 
-        Date today = new Date();
-        if (today.after(sales.getEffectiveTo())
-                || today.before(sales.getEffectiveFrom())) {
+        if (!validateDate(sales)) {
             return;
         }
 
         List<SalesReportData> reportDataList = salesReportDao.getReportData(sales);
 
-        for (SalesReportData data : reportDataList) {
-            if ("SalesActivity".equalsIgnoreCase(data.getType())) {
-                if (data.isConfidential()) {
-                    if (isSupervisor) {
-                        filteredReportDataList.add(data);
-                    }
-                } else {
-                    filteredReportDataList.add(data);
-                }
-            }
-        }
+        List<SalesReportData> filteredReportDataList = filteredReportDataList(reportDataList, isSupervisor);
 
-        List<SalesReportData> tempList = new ArrayList<SalesReportData>();
-        for (int i = 0; i < reportDataList.size() || i < maxRow; i++) {
-            tempList.add(reportDataList.get(i));
-        }
-        filteredReportDataList = tempList;
+        filteredReportDataList = generateTempList(reportDataList, maxRow);
 
         if (isNatTrade) {
             headers = Arrays.asList("Sales ID", "Sales Name", "Activity", "Time");
@@ -60,9 +42,37 @@ public class SalesApp {
 
     }
 
-    private SalesActivityReport generateReport(List<String> headers, List<SalesReportData> reportDataList) {
+    protected SalesActivityReport generateReport(List<String> headers, List<SalesReportData> reportDataList) {
         // TODO Auto-generated method stub
         return null;
     }
 
+    protected boolean validateDate(Sales sales) {
+        Date today = new Date();
+        return !today.after(sales.getEffectiveTo()) && !today.before(sales.getEffectiveFrom());
+    }
+
+    protected List<SalesReportData> filteredReportDataList(List<SalesReportData> reportDataList, boolean isSupervisor) {
+        List<SalesReportData> result = new ArrayList<>();
+        for (SalesReportData data : reportDataList) {
+            if ("SalesActivity".equalsIgnoreCase(data.getType())) {
+                if (data.isConfidential()) {
+                    if (isSupervisor) {
+                        result.add(data);
+                    }
+                } else {
+                    result.add(data);
+                }
+            }
+        }
+        return result;
+    }
+
+    protected List<SalesReportData> generateTempList(List<SalesReportData> reportDataList, int maxRow) {
+        List<SalesReportData> tempList = new ArrayList<>();
+        for (int i = 0; i < reportDataList.size() || i < maxRow; i++) {
+            tempList.add(reportDataList.get(i));
+        }
+        return tempList;
+    }
 }
