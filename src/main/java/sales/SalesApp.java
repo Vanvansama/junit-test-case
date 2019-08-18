@@ -37,7 +37,7 @@ public class SalesApp {
 
     }
 
-    private void upload(SalesActivityReport report) {
+    protected void upload(SalesActivityReport report) {
         ecmService.uploadDocument(report.toXml());
     }
 
