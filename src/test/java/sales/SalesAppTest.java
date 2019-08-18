@@ -121,4 +121,13 @@ public class SalesAppTest {
         Assert.assertTrue(headers.contains("Time"));
     }
 
+    @Test
+    public void testTransferReportToXml_givenSalesActivityReport_thenInvokeUploadDocument() {
+        SalesActivityReport spyActivityReport = mock(SalesActivityReport.class);
+
+        salesApp.upload(spyActivityReport);
+
+        verify(ecmService, times(1)).uploadDocument(any());
+        verify(spyActivityReport, times(1)).toXml();
+    }
 }
