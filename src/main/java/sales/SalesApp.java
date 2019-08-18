@@ -79,7 +79,7 @@ public class SalesApp {
 
     protected List<SalesReportData> generateTempList(List<SalesReportData> reportDataList, int maxRow) {
         List<SalesReportData> tempList = new ArrayList<>();
-        for (int i = 0; i < reportDataList.size() || i < maxRow; i++) {
+        for (int i = 0; i < reportDataList.size() && i < maxRow; i++) {
             tempList.add(reportDataList.get(i));
         }
         return tempList;

@@ -81,5 +81,25 @@ public class SalesAppTest {
         Assert.assertEquals(0, filteredReportDataList.size());
     }
 
+    @Test
+    public void should_return_templist_when_generateTempList_givenThreeReportDataAndMaxRowIs4() {
+        Sales sales = new Sales();
+        List<SalesReportData> reportDataList = Arrays.asList(new SalesReportData(), new SalesReportData(), new SalesReportData());
+        when(salesReportDao.getReportData(sales)).thenReturn(reportDataList);
+
+        List<SalesReportData> filteredReportDataList = salesApp.generateTempList(reportDataList, 4);
+
+        Assert.assertEquals(3, filteredReportDataList.size());
+    }
+
+    @Test
+    public void should_return_templist_when_generateTempList_givenThreeReportDataAndMaxRowIs2() {
+        List<SalesReportData> reportDataList = Arrays.asList(new SalesReportData(), new SalesReportData(), new SalesReportData());
+
+        List<SalesReportData> filteredReportDataList = salesApp.generateTempList(reportDataList, 2);
+
+        Assert.assertEquals(2, filteredReportDataList.size());
+    }
+
 
 }
